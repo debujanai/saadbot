@@ -5,3 +5,4 @@ g4f==0.3.2.2
 discord-py==2.3.2
 pytelegrambotapi==4.19.1
 nest_asyncio
+curl_cffi
