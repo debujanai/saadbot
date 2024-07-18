@@ -19,7 +19,10 @@ intents.voice_states = True  # Ensure we can access voice state data
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Authorized users for the !move command
-AUTHORIZED_USERS = ['mwkcr7', 'thoromir3679']
+AUTHORIZED_USERS = {
+    'mwkcr7': 'thoromir3679',
+    'thoromir3679': 'mwkcr7'
+}
 
 # Target user and predefined responses
 target = "saadii"
@@ -84,23 +87,41 @@ async def ai(ctx, *, input_text: str):
 
 # Define the !move command
 @bot.command()
-async def move(ctx, member: discord.Member):
+async def move(ctx, *, channel_name: str = None):
+    # Check if the command is used in the specific text channel named "command"
+    if ctx.channel.name != "command":
+        await ctx.send('This command can only be used in the #command channel.')
+        return
+
     if str(ctx.author) not in AUTHORIZED_USERS:
         await ctx.send('You are not authorized to use this command.')
         return
 
-    if not member.voice or not member.voice.channel:
-        await ctx.send('The mentioned user is not in a voice channel.')
+    target_username = AUTHORIZED_USERS[str(ctx.author)]
+    target_member = discord.utils.get(ctx.guild.members, name=target_username)
+
+    if not target_member:
+        await ctx.send(f'User {target_username} not found in the server.')
         return
 
-    voice_channels = [channel for channel in ctx.guild.channels if isinstance(channel, discord.VoiceChannel)]
-    if not voice_channels:
-        await ctx.send('No voice channels found in the server.')
+    if not target_member.voice or not target_member.voice.channel:
+        await ctx.send(f'{target_member.name} is not in a voice channel.')
         return
 
-    random_channel = random.choice(voice_channels)
-    await member.move_to(random_channel)
-    await ctx.send(f'Moved {member.mention} to {random_channel.name}')
+    if channel_name:
+        channel = discord.utils.get(ctx.guild.voice_channels, name=channel_name)
+        if not channel:
+            await ctx.send(f'Channel {channel_name} not found.')
+            return
+    else:
+        voice_channels = [channel for channel in ctx.guild.voice_channels if channel != target_member.voice.channel]
+        if not voice_channels:
+            await ctx.send('No other voice channels found in the server.')
+            return
+        channel = random.choice(voice_channels)
 
-# Replace 'YOUR_BOT_TOKEN' with your actual bot token
-bot.run('YOUR_BOT_TOKEN')
+    await target_member.move_to(channel)
+    await ctx.send(f'Moved {target_member.mention} to {channel.name}')
+
+# Run the bot with the actual bot token
+bot.run(BOT_TOKEN)
