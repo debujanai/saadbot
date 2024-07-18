@@ -1,7 +1,7 @@
 discord==2.3.2
 flask==2.3.2
 waitress==2.1.2
-g4f==0.3.2.0
+g4f==0.3.2.2
 discord-py==2.3.2
 pytelegrambotapi==4.19.1
 nest_asyncio
